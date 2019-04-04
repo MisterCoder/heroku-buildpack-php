@@ -340,9 +340,6 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 	EOF
 }
 
-status "Installing hirak/prestissimo..."
-composer global require hirak/prestissimo
-
 status "Installing platform packages..."
 
 if [[ $STACK == "cedar-14" || $STACK == "heroku-16" ]]; then
