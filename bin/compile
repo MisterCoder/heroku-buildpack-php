@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+echo "HIT - bin/compile"
+env
+
 # bin/compile <build-dir> <cache-dir> <env-dir>
 
 # fail hard
@@ -59,9 +62,6 @@ else
 	export COMPOSER="composer.json"
 fi
 export COMPOSER_LOCK=$(basename "$COMPOSER" ".json")".lock" # replace .json with .lock if it exists, append .lock otherwise
-
-echo "63"
-env
 
 # we're using this error message in two places
 composer_lock_parse_error=$(
@@ -190,9 +190,6 @@ else
 	echo "{}" > $COMPOSER
 fi
 
-echo "193"
-env
-
 # PHP expects to be installed in /app/.heroku/php because of compiled paths, let's set that up!
 mkdir -p /app/.heroku
 # all system packages live in there
@@ -250,9 +247,6 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.g
 tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php
 rm $build_dir/.heroku/composer.tar.gz
 
-echo "253"
-env
-
 # this alias is just for now while we install platform packages
 composer() {
 	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
@@ -270,9 +264,6 @@ echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/e
 # composer bin-dir goes last to avoid any conflicts
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
-
-echo "274"
-env
 
 # we perform this check early so people with stale lock files are reminded why if their lock file errors in the next step
 composer_lock_outdated=false
@@ -395,9 +386,6 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
 
-echo "398"
-env
-
 # pass export_file_path and profile_dir_path to composer install; they will be used by the installer plugin
 # they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
 export export_file_path=$bp_dir/export
@@ -494,9 +482,6 @@ elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hh
 	engine_r="hhvm --php -r"
 fi
 
-echo "497"
-env
-
 # log number of installed platform packages
 mmeasure "platform.count" $(composer show -d "$build_dir/.heroku/php" --installed "heroku-sys/*" 2> /dev/null | wc -l)
 
@@ -514,9 +499,6 @@ echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart
 
 # earlier we wrote at least one $PATH entry that we'll need now (and just above we added a PHP_INI_SCAN_DIR export), and installed packages will likely have added to it too
 source $bp_dir/export
-
-echo "518"
-env
 
 composer() {
 	$engine $(which composer) "$@"
@@ -727,9 +709,6 @@ if cat "$COMPOSER" | python -c 'import sys,json; sys.exit("compile" not in json.
 	}
 fi
 
-echo "730"
-env
-
 status "Preparing runtime environment..."
 
 # install this buildpack like a composer package
@@ -750,9 +729,6 @@ relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_fu
 cd $build_dir/$composer_bindir
 ln -fs $relbins .
 cd $build_dir
-
-echo "754"
-env
 
 if [[ ! -f "Procfile" ]]; then
 	echo "web: heroku-$engine-apache2" > Procfile
@@ -775,9 +751,6 @@ if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
 	install_newrelic_ext
 	install_newrelic_userini
 fi
-
-echo "779"
-env
 
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+echo "HIT - bin/test"
+env
+
 # bin/test <build-dir> <env-dir>
 # env vars are passed in already, so we can ignore the dir
 
