@@ -1,20 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+# bin/test <build-dir> <env-dir>
+# env vars are passed in already, so we can ignore the dir
 
 # fail hard
-set -eo pipefail
+set -o pipefail
 # fail harder
 set -eu
 
+# unlike a regular app.json "test" script, this one isn't run with the app dir as the CWD
+# we `cd` with a default value, so that the script can also be called from inside the app dir (`cd ""` does not change cwd)
+cd "${1-}"
 
-# name the command line argument for this script
-declare build_dir="${1:-}"
+ram=$(cat "/sys/fs/cgroup/memory/memory.limit_in_bytes" || true)
+if [[ -n "$ram" ]]; then
+	export COMPOSER_MEMORY_LIMIT="$ram"
+fi
+export COMPOSER_PROCESS_TIMEOUT=0
 
-# push the builddir to the directory stack and check if composer tests are available
-if pushd "$build_dir" && composer run-script -l 2>/dev/null | grep -q '^\s*test\b'; then
-    # run tests via composer in the build_dir
-    composer run-script --timeout=0 test
-else # if no tests are defined...
-    # ...display a friendly reminder to define some
-    printf "\033[0;31mNo test command found! Please define a test command in the composer.json in order to run test.\033[0m\n"
+echo "Trying to auto-detect test framework; first match will be found. You may use composer script 'test', or app.json, to specify what to run." >&2
+# 'composer run-script -l' prints a "scripts:" header on stderr...
+if composer run-script -l 2> /dev/null | grep -q -- "^\s*test\b"; then
+	echo "Script 'composer test' found, executing..." >&2
+	composer run-script test
+elif composer exec -l | grep -q -- "^-\s*codecept\b"; then
+	echo "Codeception found, executing 'codecept run'..." >&2
+	composer exec -v codecept run # without -v, no stderr output is printed
+elif composer exec -l | grep -q -- "^-\s*behat\b"; then
+	echo "Behat found, executing 'behat'..." >&2
+	composer exec -v behat # without -v, no stderr output is printed
+elif composer exec -l | grep -q -- "^-\s*phpspec\b"; then
+	echo "PHPSpec found, executing 'phpspec run'..." >&2
+	composer exec -v phpspec run # without -v, no stderr output is printed
+elif composer exec -l | grep -q -- "^-\s*atoum\b"; then
+	echo "atoum found, executing 'atoum'..." >&2
+	composer exec -v atoum # without -v, no stderr output is printed
+elif composer exec -l | grep -q -- "^-\s*kahlan\b"; then
+	echo "Kahlan found, executing 'kahlan'..." >&2
+	composer exec -v kahlan # without -v, no stderr output is printed
+elif composer exec -l | grep -q -- "^-\s*peridot\b"; then
+	echo "Peridot found, executing 'peridot'..." >&2
+	composer exec -v peridot # without -v, no stderr output is printed
+elif composer exec -l | grep -q -- "^-\s*phpunit\b"; then
+	echo "PHPUnit found, executing 'phpunit'..." >&2
+	composer exec -v phpunit # -dmemory_limit="${ram:-"-1"}" # composer exec -- is currently broken, so we can't pass -d to phpunit # without -v, no stderr output is printed
+else
+	echo "No tests found. Please use composer script 'test', or app.json, to specify what to run." >&2
+	exit 1
 fi
