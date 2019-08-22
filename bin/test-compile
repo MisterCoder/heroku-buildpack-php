@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-echo "HIT - bin/test-compile"
-env
-
 # bin/test-compile <build-dir> <cache-dir> <env-dir>
 
 # fail hard
