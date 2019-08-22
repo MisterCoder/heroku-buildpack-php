@@ -196,7 +196,7 @@ export COMPOSER_HOME=$cache_dir/.composer
 mkdir -p $COMPOSER_HOME
 
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
-[[ $build_dir == '/app' ]] || ln -sf $build_dir/.heroku/php /app/.heroku/php
+[[ $build_dir == '/app' ]] || rm -Rf /app/.heroku/php && ln -s $build_dir/.heroku/php /app/.heroku/php
 
 status "Bootstrapping..."
 
@@ -216,7 +216,7 @@ fi
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
-ln -sf $build_dir/.heroku/php-min /app/.heroku/php-min
+rm -Rf /app/.heroku/php-min && ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
 curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.3.8.tar.gz" || {
 	mcount "failures.bootstrap.download.php-min"
