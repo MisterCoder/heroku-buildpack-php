@@ -2,14 +2,10 @@ http {
 	include       mime.types;
 	default_type  application/octet-stream;
 
-	#log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-	#                  '$status $body_bytes_sent "$http_referer" '
-	#                  '"$http_user_agent" "$http_x_forwarded_for"';
-
-	log_format combined '$remote_addr $remote_user [$time_local] '
-                            '$http_host $http_x_consumer_custom_id $request_id $http_request_id '
-                            '"$request" $status $body_bytes_sent '
-                            '"$http_referer" "$http_user_agent" $request_time';
+	log_format main '$remote_addr $remote_user [$time_local] '
+                        '$http_host $http_x_consumer_custom_id $request_id $http_request_id '
+                        '"$request" $status $body_bytes_sent '
+                        '"$http_referer" "$http_user_agent" $request_time';
 
 	#access_log  logs/access.log  main;
 
@@ -61,7 +57,7 @@ http {
 		root "<?=getenv('DOCUMENT_ROOT')?:getenv('HEROKU_APP_DIR')?:getcwd()?>";
 
 		error_log stderr;
-		access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log;
+		access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log main;
 
 		include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
 
