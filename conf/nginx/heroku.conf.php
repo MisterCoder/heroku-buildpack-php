@@ -6,6 +6,11 @@ http {
 	#                  '$status $body_bytes_sent "$http_referer" '
 	#                  '"$http_user_agent" "$http_x_forwarded_for"';
 
+	log_format combined '$remote_addr $remote_user [$time_local] '
+                            '$http_host $http_x_consumer_custom_id $request_id $http_request_id '
+                            '"$request" $status $body_bytes_sent '
+                            '"$http_referer" "$http_user_agent" $request_time';
+
 	#access_log  logs/access.log  main;
 
 	sendfile        on;
